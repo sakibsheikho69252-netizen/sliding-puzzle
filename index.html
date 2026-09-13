@@ -1,0 +1,194 @@
+<!DOCTYPE html>  <html lang="bn">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>স্লাইডিং পাজল গেম</title>  
+    <style>  
+        body {  
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;  
+            background-color: #2c3e50;  
+            color: #fff;  
+            display: flex;  
+            flex-direction: column;  
+            align-items: center;  
+            justify-content: center;  
+            height: 100vh;  
+            margin: 0;  
+        }  h1 {  
+        margin-bottom: 5px;  
+    }  
+
+    p {  
+        margin-top: 0;  
+        color: #bdc3c7;  
+    }  
+
+    .game-container {  
+        background-color: #34495e;  
+        padding: 15px;  
+        border-radius: 10px;  
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);  
+    }  
+
+    .grid {  
+        display: grid;  
+        grid-template-columns: repeat(4, 70px);  
+        grid-template-rows: repeat(4, 70px);  
+        gap: 6px;  
+    }  
+
+    .tile {  
+        background-color: #3498db;  
+        color: white;  
+        font-size: 24px;  
+        font-weight: bold;  
+        display: flex;  
+        align-items: center;  
+        justify-content: center;  
+        border-radius: 6px;  
+        cursor: pointer;  
+        user-select: none;  
+        transition: background-color 0.2s;  
+    }  
+
+    .tile:hover {  
+        background-color: #2980b9;  
+    }  
+
+    .tile.empty {  
+        background-color: transparent;  
+        cursor: default;  
+    }  
+
+    .btn {  
+        margin-top: 20px;  
+        padding: 10px 20px;  
+        font-size: 16px;  
+        font-weight: bold;  
+        background-color: #e74c3c;  
+        color: white;  
+        border: none;  
+        border-radius: 5px;  
+        cursor: pointer;  
+        transition: background-color 0.2s;  
+    }  
+
+    .btn:hover {  
+        background-color: #c0392b;  
+    }  
+
+    #message {  
+        margin-top: 15px;  
+        font-size: 18px;  
+        font-weight: bold;  
+        color: #2ecc71;  
+        height: 24px;  
+    }  
+</style>
+
+</head>  
+<body>  <h1>স্লাইডিং পাজল গেম</h1>  
+<p>সংখ্যাগুলো ১ থেকে ১৫ পর্যন্ত ক্রমানুসারে সাজান</p>  
+
+<div class="game-container">  
+    <div class="grid" id="puzzleGrid"></div>  
+</div>  
+
+<div id="message"></div>  
+<button class="btn" onclick="initGame()">নতুন গেম শুরু করুন</button>  
+
+<script>  
+    const grid = document.getElementById('puzzleGrid');  
+    const message = document.getElementById('message');  
+      
+    let tiles = [];  
+    let emptyIndex = 15; // শেষ ঘরটি খালি থাকবে (0-15 এর মধ্যে 15 মানে ১৬তম ঘর)  
+
+    // গেম শুরু বা রিস্টার্ট করার ফাংশন  
+    function initGame() {  
+        message.innerText = '';  
+        // ১ থেকে ১৫ এবং একটি খালি ঘরের জন্য খালি স্ট্রিং তৈরি  
+        tiles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, ""];  
+          
+        // পাজলটি যাতে সলভ করা সম্ভব হয়, সেজন্য এলোমেলো করার নিয়ম  
+        shuffleTiles();  
+        renderGrid();  
+    }  
+
+    // টাইলস এলোমেলো করার ফাংশন  
+    function shuffleTiles() {  
+        // সহজে এলোমেলো করার জন্য কিছু রেন্ডম বৈধ মুভ চালানো হয়  
+        for (let i = 0; i < 100; i++) {  
+            let validMoves = getValidMoves(emptyIndex);  
+            let randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];  
+              
+            // খালি ঘরের সাথে রেন্ডম ঘরের পজিশন বদল  
+            tiles[emptyIndex] = tiles[randomMove];  
+            tiles[randomMove] = "";  
+            emptyIndex = randomMove;  
+        }  
+    }  
+
+    // কোন ঘরের সাথে খালি ঘরের অদলবদল করা যাবে তা বের করা  
+    function getValidMoves(idx) {  
+        let row = Math.floor(idx / 4);  
+        let col = idx % 4;  
+        let moves = [];  
+
+        if (row > 0) moves.push(idx - 4); // উপরে  
+        if (row < 3) moves.push(idx + 4); // নিচে  
+        if (col > 0) moves.push(idx - 1); // বামে  
+        if (col < 3) moves.push(idx + 1); // ডানে  
+
+        return moves;  
+    }  
+
+    // স্ক্রিনে গ্রিড রেন্ডার করা  
+    function renderGrid() {  
+        grid.innerHTML = '';  
+        tiles.forEach((value, index) => {  
+            const tile = document.createElement('div');  
+            tile.classList.add('tile');  
+            if (value === "") {  
+                tile.classList.add('empty');  
+            } else {  
+                tile.innerText = value;  
+                tile.addEventListener('click', () => moveTile(index));  
+            }  
+            grid.appendChild(tile);  
+        });  
+    }  
+
+    // টাইল ক্লিক করলে সলভিং মুভ করা  
+    function moveTile(index) {  
+        let validMoves = getValidMoves(emptyIndex);  
+          
+        // যদি ক্লিক করা ঘরটি খালি ঘরের পাশের ঘর হয়  
+        if (validMoves.includes(index)) {  
+            tiles[emptyIndex] = tiles[index];  
+            tiles[index] = "";  
+            emptyIndex = index;  
+              
+            renderGrid();  
+            checkWin();  
+        }  
+    }  
+
+    // জিতেছে কিনা তা চেক করা  
+    function checkWin() {  
+        let winningState = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, ""];  
+        let isWon = tiles.every((val, index) => val === winningState[index]);  
+
+        if (isWon) {  
+            message.innerText = "অভিনন্দন! আপনি পাজলটি সমাধান করেছেন! 🎉";  
+        }  
+    }  
+
+    // প্রথমবার গেম লোড করা  
+    initGame();  
+</script>
+
+</body>  
+</html>  
+
+
